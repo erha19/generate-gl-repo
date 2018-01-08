@@ -131,7 +131,6 @@ function assignToTeam() {
     });
 }
 async function publish(config, pkg) {
-    console.log(pkg.repositories)
     await utils.exec('git init');
     await utils.exec('git add -A');
     await utils.exec(`git config user.name ${config.username}`);
@@ -140,6 +139,7 @@ async function publish(config, pkg) {
     await utils.exec(`git remote add origin ${pkg.repositories}`);
     await utils.exec(`git checkout -b ${pkg.version}`);
     await utils.exec(`git push origin ${pkg.version}`);
+    await utils.exec(`rm -rf .git`);
 }
 function assignToPerson() {
     gitlab.projects.create({
