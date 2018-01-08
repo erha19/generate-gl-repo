@@ -108,19 +108,6 @@ function assignToTeam() {
                   return 'Please enter a valid GitLab email.';
                 }
               }
-            },
-            {
-              type: 'input',
-              name: 'password',
-              default: config.password || '',
-              message: 'Enter your GitLab password:',
-              validate: function (value) {
-                if (value) {
-                  return true;
-                } else {
-                  return 'Please enter a valid GitLab password.';
-                }
-              }
             }
         ];
         inquirer.prompt(questions).then(function (answers) {
