@@ -260,6 +260,7 @@ function init() {
             
               inquirer.prompt(questions).then(function (answers) {
                 writeConfigFile(answers);
+                createProject();
               });
         }else{
             options = {
