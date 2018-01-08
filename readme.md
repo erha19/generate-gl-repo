@@ -65,6 +65,7 @@ gen my-new-repository -n -w
 ```
 
 ### Create a repository, and assign it to a user group by ID number
+
 This option require admin permissions in the configured user.
 
 You can run `gen -l` to see all the namespace info.
@@ -72,6 +73,8 @@ You can run `gen -l` to see all the namespace info.
 ```
 gen my-new-repository -a [namespace_id]
 ```
+
+Or `cd  my-new-repository && gen -a [namespace_id]`
 
 >**Note**: If the current user don't have permissions to assign a project to a group, the project will be created for the current user.
 

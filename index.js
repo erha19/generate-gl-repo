@@ -6,6 +6,8 @@ const fs      = require('fs');
 const path      = require('path');
 const git_lab = require('gitlab');
 const sep = path.sep;
+const utils = require('./utils');
+const gituser = require('./utils/git-user')();
 let config = {};
 let options = {};
 let repo_data = {};
@@ -24,8 +26,8 @@ function readConfigFile(){
 }
 
 function writeConfigFile(data){
-	var json = JSON.stringify(data);
-	fs.writeFileSync(__dirname+'/meta.json', json, 'utf8');	
+    config = Object.assign(data, config)
+	fs.writeFileSync(__dirname+'/meta.json', JSON.stringify(config,null,2), 'utf8');	
 	console.log('Config file successfully written.');
 }
 
@@ -71,12 +73,73 @@ function assignToTeam() {
         namespace_id: options.assign,
         description: options.description
     }, function (project) {
+        const pakage = path.resolve('./package.json');
+        let pkg = require(pakage);
         repo_data = project;
-        
-        console.log('New project id: '+repo_data.id);
-
-        outpuRepoUrl();
+        if (project !== true) {
+            console.log('New project id: '+repo_data.id);
+            pkg.repositories = repo_data.http_url_to_repo;
+            pkg.homepage = repo_data.web_url;
+            fs.writeFileSync(pakage, JSON.stringify(pkg, null, 2));
+        }
+        const questions = [
+            {
+              type: 'input',
+              name: 'username',
+              default: config.username || gituser.name,
+              message: 'Input your GitLab username:',
+              validate: function (value) {
+                if (value) {
+                  return true;
+                } else {
+                  return 'Please enter a valid GitLab name.';
+                }
+              }
+            },
+            {
+              type: 'input',
+              name: 'email',
+              default: config.email || gituser.email,
+              message: 'Enter your GitLab email:',
+              validate: function (value) {
+                if (/[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?.)+[\w](?:[\w-]*[\w])?/.test(value)) {
+                  return true;
+                } else {
+                  return 'Please enter a valid GitLab email.';
+                }
+              }
+            },
+            {
+              type: 'input',
+              name: 'password',
+              default: config.password || '',
+              message: 'Enter your GitLab password:',
+              validate: function (value) {
+                if (value) {
+                  return true;
+                } else {
+                  return 'Please enter a valid GitLab password.';
+                }
+              }
+            }
+        ];
+        inquirer.prompt(questions).then(function (answers) {
+            writeConfigFile(answers);
+            publish(config, pkg)
+        });
+        // outpuRepoUrl();
     });
+}
+async function publish(config, pkg) {
+    console.log(pkg.repositories)
+    await utils.exec('git init');
+    await utils.exec('git add -A');
+    await utils.exec(`git config user.name ${config.username}`);
+    await utils.exec(`git config user.email ${config.email}`);
+    await utils.exec(`git commit -m 'Release v${pkg.version}'`);
+    await utils.exec(`git remote add origin ${pkg.repositories}`);
+    await utils.exec(`git checkout -b ${pkg.version}`);
+    await utils.exec(`git push origin ${pkg.version}`);
 }
 function assignToPerson() {
     gitlab.projects.create({
@@ -95,6 +158,7 @@ function assignToPerson() {
         outpuRepoUrl();
     });
 }
+
 function createProject(callback) {
     if (options.assign) {
         assignToTeam();
@@ -102,7 +166,39 @@ function createProject(callback) {
     else {
         assignToPerson();
     }
-
+}
+function showProject() {
+    gitlab.projects.all(function(projects) {
+        let projectInfos = []
+        for (var i = 0; i < projects.length; i++) {
+            // projectInfos.push({
+            //     id: projects[i].id,
+            //     // description: projects[i].description,
+            //     owner_id: projects[i].owner_id || 'unkwon',
+            //     path: projects[i].path,
+            //     path_with_namespace: projects[i].path_with_namespace,
+            //     namespace_id: projects[i].namespace && projects[i].namespace.id || '',
+            //     namespace_owner_id: projects[i].namespace && projects[i].namespace.owner_id || '',
+            //     namespace_name: projects[i].namespace && projects[i].namespace.name || '',
+            // })
+            console.info('===============================')
+            console.info(`id: ${projects[i].id}`)
+            if (projects[i].owner_id) {
+                console.info(`owner_id: ${projects[i].owner_id}`)
+            }
+            
+            console.info(`path: ${projects[i].path}`)
+            if (projects[i].path_with_namespace) {
+                console.info(`path_with_namespace: ${projects[i].path_with_namespace}`)
+            }
+            if (projects[i].namespace) {
+                console.info(`namespace_name: ${projects[i].namespace.name}`)
+                console.info(`namespace_id: ${projects[i].namespace.id}`)
+                console.info(`namespace_owner_id: ${projects[i].namespace.owner_id}`)
+            }
+        //   console.log("#" + projects[i].id + ": " + projects[i].name + ", path: " + projects[i].path + ", default_branch: " + projects[i].default_branch + ", private: " + projects[i]["private"] + ", owner: " + projects[i].owner.name + " (" + projects[i].owner.email + "), date: " + projects[i].created_at);
+        }
+    });
 }
 
 function init() {
@@ -130,7 +226,7 @@ function init() {
                 console.log('Configuration file missing. Initializing...\n');
             }
 
-            var questions = [
+            const questions = [
                 {
                   type: 'input',
                   name: 'gitlab_url',
@@ -166,6 +262,14 @@ function init() {
                 writeConfigFile(answers);
               });
         }else{
+            options = {
+                repo_name: program.args[0],
+                description: program.description || '',
+                assign: program.assignToTeam || false,
+                output_ssh: program.outputSshUrl || false,
+                output_http: program.outputHtmlUrl || false,
+                clone: program.clone || false
+            };
 
             gitlab = new git_lab({
                 url: config.gitlab_url,
@@ -173,50 +277,13 @@ function init() {
             });
 
             if (program.list) {
-                gitlab.projects.all(function(projects) {
-                    let projectInfos = []
-                    for (var i = 0; i < projects.length; i++) {
-                        // projectInfos.push({
-                        //     id: projects[i].id,
-                        //     // description: projects[i].description,
-                        //     owner_id: projects[i].owner_id || 'unkwon',
-                        //     path: projects[i].path,
-                        //     path_with_namespace: projects[i].path_with_namespace,
-                        //     namespace_id: projects[i].namespace && projects[i].namespace.id || '',
-                        //     namespace_owner_id: projects[i].namespace && projects[i].namespace.owner_id || '',
-                        //     namespace_name: projects[i].namespace && projects[i].namespace.name || '',
-                        // })
-                        console.info('===============================')
-                        console.info(`id: ${projects[i].id}`)
-                        if (projects[i].owner_id) {
-                            console.info(`owner_id: ${projects[i].owner_id}`)
-                        }
-                        
-                        console.info(`path: ${projects[i].path}`)
-                        if (projects[i].path_with_namespace) {
-                            console.info(`path_with_namespace: ${projects[i].path_with_namespace}`)
-                        }
-                        if (projects[i].namespace) {
-                            console.info(`namespace_name: ${projects[i].namespace.name}`)
-                            console.info(`namespace_id: ${projects[i].namespace.id}`)
-                            console.info(`namespace_owner_id: ${projects[i].namespace.owner_id}`)
-                        }
-                    //   console.log("#" + projects[i].id + ": " + projects[i].name + ", path: " + projects[i].path + ", default_branch: " + projects[i].default_branch + ", private: " + projects[i]["private"] + ", owner: " + projects[i].owner.name + " (" + projects[i].owner.email + "), date: " + projects[i].created_at);
-                    }
-                });
+                showProject();
             }
             else if(program.args[0]){
-                options = {
-                    repo_name: program.args[0],
-                    description: program.description || '',
-                    assign: program.assignToTeam || false,
-                    output_ssh: program.outputSshUrl || false,
-                    output_http: program.outputHtmlUrl || false,
-                    clone: program.clone || false
-                };
                 createProject();
             }else{
-                console.log('Repository name is missing.\n\nType "addrepo --help" for help.');
+                options.repo_name = path.basename(path.resolve('./'));
+                createProject();
             }
         }
 }
