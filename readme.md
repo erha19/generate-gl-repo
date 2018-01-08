@@ -1,9 +1,9 @@
-# addrepo
+# generate-gl-repo
 
 Minimal CLI wrapper for [node-gitlab] package to easy creating new repositories on a GitLab server and clone it locally, all in a single command.
 
 ```
-addrepo my-new-repository
+gen my-new-repository
 ```
 
 >**IMPORTANT**: You must to have an SSH key properly configured on your local machine and on the GitLab server in order to be able to clone the repository after is has been created.
@@ -12,7 +12,7 @@ addrepo my-new-repository
 ## Options
 
 
-  Usage: addrepo <repo name> [options]
+  Usage: gen <repo name> [options]
 
 
   Options:
@@ -28,7 +28,7 @@ addrepo my-new-repository
 ## Install
 
 ```
-npm install addrepo -g
+npm install generate-gl-repo -g
 ```
 >**Note**: You must install this package globally to be able to use it anywhere from the CLI.
 
@@ -37,7 +37,7 @@ npm install addrepo -g
 
 Use this command to initialize the configuration process:
 ```
-addrepo -i
+gen -i
 ``` 
 
 The configuration process will ask you:
@@ -50,25 +50,25 @@ The configuration process will ask you:
 
 ### Initialize the configuration file
 ```
-addrepo -i
+gen -i
 ```
 
 ### Create a new repository
 ```
-addrepo my-new-repository
+gen my-new-repository
 ```
 >**Note**: If there is already a repository with the same name for the current user, the action will fail. 
 
 ### Create a repository, dont clone it, and output the HTTP URL
 ```
-addrepo my-new-repository -n -w
+gen my-new-repository -n -w
 ```
 
 ### Create a repository, and assign it to a user group by ID number
 This option require admin permissions in the configured user.
 
 ```
-addrepo my-new-repository -a 67
+gen my-new-repository -a 67
 ```
 
 >**Note**: If the current user don't have permissions to assign a project to a group, the project will be created for the current user.

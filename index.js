@@ -13,7 +13,7 @@ let repo_data = {};
 // gitlab api https://docs.gitlab.com/ce/api/
 
 function readConfigFile(){
-	var filepath = __dirname + '/grepo.json';
+	var filepath = __dirname + '/meta.json';
 	try {
 	  fileContents = fs.readFileSync(filepath);
 	} catch (err) {
@@ -25,7 +25,7 @@ function readConfigFile(){
 
 function writeConfigFile(data){
 	var json = JSON.stringify(data);
-	fs.writeFileSync(__dirname+'/grepo.json', json, 'utf8');	
+	fs.writeFileSync(__dirname+'/meta.json', json, 'utf8');	
 	console.log('Config file successfully written.');
 }
 

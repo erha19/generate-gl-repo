@@ -1,6 +1,6 @@
 {
   "name": "generate-gl-repo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI node tool to create a GitLab repository",
   "main": "index.js",
   "author": "erha19<faterrole@gmail.com>",
@@ -15,10 +15,10 @@
   "repositories": [
     {
       "type": "git",
-      "url": "git@github.com:Lukas238/addrepo.git"
+      "url": "https://github.com/erha19/generate-gl-repo.git"
     }
   ],
-  "homepage": "https://github.com/Lukas238/addrepo",
+  "homepage": "https://github.com/erha19/generate-gl-repo",
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
