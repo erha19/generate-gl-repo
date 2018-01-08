@@ -1,0 +1,30 @@
+{
+  "name": "generate-gl-repo",
+  "version": "1.0.0",
+  "description": "CLI node tool to create a GitLab repository",
+  "main": "index.js",
+  "author": "erha19<faterrole@gmail.com>",
+  "dependencies": {
+    "commander": "^2.12.2",
+    "gitlab": "^1.7.1",
+    "inquirer": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=6.11.2"
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "git@github.com:Lukas238/addrepo.git"
+    }
+  ],
+  "homepage": "https://github.com/Lukas238/addrepo",
+  "license": "MIT",
+  "preferGlobal": true,
+  "bin": {
+    "gen": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
