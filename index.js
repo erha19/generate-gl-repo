@@ -220,12 +220,25 @@ function init() {
         })
         .parse(process.argv);
 
-        if(program.initialize || !config){
+        // Setting
+        options = {
+            repo_name: program.args[0],
+            description: program.description || '',
+            assign: program.assignToTeam || false,
+            output_ssh: program.outputSshUrl || false,
+            output_http: program.outputHtmlUrl || false,
+            clone: program.clone || false
+        };
 
+        gitlab = new git_lab({
+            url: config.gitlab_url,
+            token: config.gitlab_token
+        });
+
+        if(program.initialize || !config){
             if(!config){
                 console.log('Configuration file missing. Initializing...\n');
             }
-
             const questions = [
                 {
                   type: 'input',
@@ -263,20 +276,6 @@ function init() {
                 createProject();
               });
         }else{
-            options = {
-                repo_name: program.args[0],
-                description: program.description || '',
-                assign: program.assignToTeam || false,
-                output_ssh: program.outputSshUrl || false,
-                output_http: program.outputHtmlUrl || false,
-                clone: program.clone || false
-            };
-
-            gitlab = new git_lab({
-                url: config.gitlab_url,
-                token: config.gitlab_token
-            });
-
             if (program.list) {
                 showProject();
             }
