@@ -230,11 +230,6 @@ function init() {
             clone: program.clone || false
         };
 
-        gitlab = new git_lab({
-            url: config.gitlab_url,
-            token: config.gitlab_token
-        });
-
         if(program.initialize || !config){
             if(!config){
                 console.log('Configuration file missing. Initializing...\n');
@@ -273,9 +268,18 @@ function init() {
             
               inquirer.prompt(questions).then(function (answers) {
                 writeConfigFile(answers);
+                gitlab = new git_lab({
+                    url: config.gitlab_url,
+                    token: config.gitlab_token
+                });
                 createProject();
               });
+              
         }else{
+            gitlab = new git_lab({
+                url: config.gitlab_url,
+                token: config.gitlab_token
+            });
             if (program.list) {
                 showProject();
             }
